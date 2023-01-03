@@ -12,6 +12,7 @@ import software.amazon.awscdk.RemovalPolicy;
 import software.amazon.awscdk.Stack;
 import software.amazon.awscdk.StackProps;
 import software.amazon.awscdk.services.apigateway.LambdaRestApi;
+import software.amazon.awscdk.services.apigateway.LambdaRestApiProps;
 import software.amazon.awscdk.services.apigateway.Resource;
 import software.amazon.awscdk.services.dynamodb.Attribute;
 import software.amazon.awscdk.services.dynamodb.AttributeType;
@@ -41,7 +42,7 @@ public class InfrastructureStack extends Stack {
             "cd ms-ecommerce " +
                 "&& mvn clean" +
                 "&& mvn clean install " +
-                "&& cp /asset-input/ms-product/target/ms-ecommerce.jar /asset-output/"
+                "&& cp /asset-input/ms-product/target/ms-product.jar /asset-output/"
         );
 
         BundlingOptions.Builder builderOptions = BundlingOptions.builder()
@@ -81,10 +82,19 @@ public class InfrastructureStack extends Stack {
             .build());
         productTable.grantWriteData(productFunction);
 
-        LambdaRestApi apiGatewayMS = LambdaRestApi.Builder.create(this, "APIGatewayMS")
-            .proxy(false)
-            .handler(productFunction)
-            .build();
-//        apiGatewayMS.root.addResource("products");
+        LambdaRestApi apiGatewayMS = new LambdaRestApi(this, "APIGatewayMS",
+            LambdaRestApiProps.builder()
+                .proxy(false)
+                .handler(productFunction)
+                .build());
+
+        Resource product = apiGatewayMS.getRoot().addResource("product");
+        product.addMethod("GET");
+        product.addMethod("POST");
+
+        Resource singleProduct = product.addResource("{id}");
+        singleProduct.addMethod("GET");
+        singleProduct.addMethod("PUT");
+        singleProduct.addMethod("DELETE");
     }
 }
