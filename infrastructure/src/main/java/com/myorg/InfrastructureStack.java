@@ -8,10 +8,16 @@ import java.util.List;
 import software.amazon.awscdk.BundlingOptions;
 import software.amazon.awscdk.DockerVolume;
 import software.amazon.awscdk.Duration;
+import software.amazon.awscdk.RemovalPolicy;
 import software.amazon.awscdk.Stack;
 import software.amazon.awscdk.StackProps;
 import software.amazon.awscdk.services.apigateway.LambdaRestApi;
-import software.amazon.awscdk.services.apigateway.LambdaRestApiProps;
+import software.amazon.awscdk.services.apigateway.Resource;
+import software.amazon.awscdk.services.dynamodb.Attribute;
+import software.amazon.awscdk.services.dynamodb.AttributeType;
+import software.amazon.awscdk.services.dynamodb.BillingMode;
+import software.amazon.awscdk.services.dynamodb.Table;
+import software.amazon.awscdk.services.dynamodb.TableProps;
 import software.amazon.awscdk.services.lambda.Code;
 import software.amazon.awscdk.services.lambda.Function;
 import software.amazon.awscdk.services.lambda.FunctionProps;
@@ -21,6 +27,7 @@ import software.amazon.awscdk.services.s3.assets.AssetOptions;
 import software.constructs.Construct;
 
 public class InfrastructureStack extends Stack {
+
     public InfrastructureStack(final Construct scope, final String id) {
         this(scope, id, null);
     }
@@ -34,7 +41,7 @@ public class InfrastructureStack extends Stack {
             "cd ms-ecommerce " +
                 "&& mvn clean" +
                 "&& mvn clean install " +
-                "&& cp /asset-input/ms-ecommerce/target/ms-ecommerce.jar /asset-output/"
+                "&& cp /asset-input/ms-product/target/ms-ecommerce.jar /asset-output/"
         );
 
         BundlingOptions.Builder builderOptions = BundlingOptions.builder()
@@ -50,22 +57,34 @@ public class InfrastructureStack extends Stack {
             .user("root")
             .outputType(ARCHIVED);
 
-        Function function = new Function(this, "FunctionTestJava", FunctionProps.builder()
+        Function productFunction = new Function(this, "FunctionTestJava", FunctionProps.builder()
             .runtime(Runtime.JAVA_11)
             .code(Code.fromAsset("../software/", AssetOptions.builder()
                 .bundling(builderOptions
                     .command(functionPackagingInstructions)
                     .build())
                 .build()))
-            .handler("com.myorg.HandleRequest")
+            .handler("com.myorg.ProductApplication")
             .memorySize(1024)
             .timeout(Duration.seconds(10))
             .logRetention(RetentionDays.FIVE_DAYS)
             .build());
 
-        new LambdaRestApi(this, "APIGatewayJava", LambdaRestApiProps.builder()
-            .proxy(true)
-            .handler(function)
+        Table productTable = new Table(this, "product", TableProps.builder()
+            .partitionKey(Attribute.builder()
+                .name("id")
+                .type(AttributeType.STRING)
+                .build())
+            .tableName("product")
+            .removalPolicy(RemovalPolicy.DESTROY)
+            .billingMode(BillingMode.PAY_PER_REQUEST)
             .build());
+        productTable.grantWriteData(productFunction);
+
+        LambdaRestApi apiGatewayMS = LambdaRestApi.Builder.create(this, "APIGatewayMS")
+            .proxy(false)
+            .handler(productFunction)
+            .build();
+//        apiGatewayMS.root.addResource("products");
     }
 }
