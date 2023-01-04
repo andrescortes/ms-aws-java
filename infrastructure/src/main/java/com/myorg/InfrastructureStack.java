@@ -4,7 +4,9 @@ import static java.util.Collections.singletonList;
 import static software.amazon.awscdk.BundlingOutput.ARCHIVED;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import software.amazon.awscdk.BundlingOptions;
 import software.amazon.awscdk.DockerVolume;
 import software.amazon.awscdk.Duration;
@@ -23,7 +25,6 @@ import software.amazon.awscdk.services.lambda.Code;
 import software.amazon.awscdk.services.lambda.Function;
 import software.amazon.awscdk.services.lambda.FunctionProps;
 import software.amazon.awscdk.services.lambda.Runtime;
-import software.amazon.awscdk.services.logs.RetentionDays;
 import software.amazon.awscdk.services.s3.assets.AssetOptions;
 import software.constructs.Construct;
 
@@ -35,6 +36,16 @@ public class InfrastructureStack extends Stack {
 
     public InfrastructureStack(final Construct scope, final String id, final StackProps props) {
         super(scope, id, props);
+
+        Table productTable = new Table(this, "products", TableProps.builder()
+            .partitionKey(Attribute.builder()
+                .name("id")
+                .type(AttributeType.STRING)
+                .build())
+            .tableName("products")
+            .removalPolicy(RemovalPolicy.DESTROY)
+            .billingMode(BillingMode.PAY_PER_REQUEST)
+            .build());
 
         List<String> functionPackagingInstructions = Arrays.asList(
             "/bin/sh",
@@ -57,6 +68,10 @@ public class InfrastructureStack extends Stack {
             .user("root")
             .outputType(ARCHIVED);
 
+        Map<String, String> env = new HashMap<>();
+        env.put("TABLE_NAME", productTable.getTableName());
+        env.put("PRIMARY_KEY", "id");
+
         Function productFunction = new Function(this, "FunctionTestJava", FunctionProps.builder()
             .runtime(Runtime.JAVA_11)
             .code(Code.fromAsset("../software/", AssetOptions.builder()
@@ -67,18 +82,9 @@ public class InfrastructureStack extends Stack {
             .handler("org.myorg.ProductApplication")
             .memorySize(1024)
             .timeout(Duration.seconds(10))
-            .logRetention(RetentionDays.FIVE_DAYS)
+            .environment(env)
             .build());
 
-        Table productTable = new Table(this, "products", TableProps.builder()
-            .partitionKey(Attribute.builder()
-                .name("id")
-                .type(AttributeType.STRING)
-                .build())
-            .tableName("products")
-            .removalPolicy(RemovalPolicy.DESTROY)
-            .billingMode(BillingMode.PAY_PER_REQUEST)
-            .build());
         productTable.grantWriteData(productFunction);
 
         LambdaRestApi apiGatewayMS = new LambdaRestApi(this, "APIGatewayMS",
@@ -95,5 +101,7 @@ public class InfrastructureStack extends Stack {
         singleProduct.addMethod("GET");
         singleProduct.addMethod("PUT");
         singleProduct.addMethod("DELETE");
+
+
     }
 }

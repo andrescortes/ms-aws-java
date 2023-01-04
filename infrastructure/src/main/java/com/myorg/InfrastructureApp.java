@@ -7,7 +7,7 @@ public class InfrastructureApp {
     public static void main(final String[] args) {
         App app = new App();
 
-        new InfrastructureStack(app, "AwsMsJavaStack", StackProps.builder()
+        new InfrastructureStack(app, "AwsMicroservicesJavaStack", StackProps.builder()
             .description(
                 "This stack provide all resources to CRUD operations application Ecommerce")
             // If you don't specify 'env', this stack will be environment-agnostic.
