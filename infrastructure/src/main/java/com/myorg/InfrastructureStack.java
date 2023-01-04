@@ -39,8 +39,7 @@ public class InfrastructureStack extends Stack {
         List<String> functionPackagingInstructions = Arrays.asList(
             "/bin/sh",
             "-c",
-            "cd ms-ecommerce " +
-                "&& mvn clean" +
+            "cd ms-product " +
                 "&& mvn clean install " +
                 "&& cp /asset-input/ms-product/target/ms-product.jar /asset-output/"
         );
@@ -65,18 +64,18 @@ public class InfrastructureStack extends Stack {
                     .command(functionPackagingInstructions)
                     .build())
                 .build()))
-            .handler("com.myorg.ProductApplication")
+            .handler("org.myorg.ProductApplication")
             .memorySize(1024)
             .timeout(Duration.seconds(10))
             .logRetention(RetentionDays.FIVE_DAYS)
             .build());
 
-        Table productTable = new Table(this, "product", TableProps.builder()
+        Table productTable = new Table(this, "products", TableProps.builder()
             .partitionKey(Attribute.builder()
                 .name("id")
                 .type(AttributeType.STRING)
                 .build())
-            .tableName("product")
+            .tableName("products")
             .removalPolicy(RemovalPolicy.DESTROY)
             .billingMode(BillingMode.PAY_PER_REQUEST)
             .build());
