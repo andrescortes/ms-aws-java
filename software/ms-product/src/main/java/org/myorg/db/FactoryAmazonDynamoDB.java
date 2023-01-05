@@ -4,7 +4,7 @@ import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapperConfig;
+import com.amazonaws.services.dynamodbv2.model.AmazonDynamoDBException;
 
 public class FactoryAmazonDynamoDB {
 
@@ -17,7 +17,12 @@ public class FactoryAmazonDynamoDB {
     }
 
     public DynamoDBMapper mapper() {
-        return new DynamoDBMapper(this.amazonDynamoDB());
+        try {
+            return new DynamoDBMapper(this.amazonDynamoDB());
+        } catch (Exception e) {
+            throw new AmazonDynamoDBException(
+                "No was created a instance of " + DynamoDBMapper.class);
+        }
     }
 
 }

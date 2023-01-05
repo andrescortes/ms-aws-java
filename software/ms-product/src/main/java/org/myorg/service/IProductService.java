@@ -7,5 +7,11 @@ public interface IProductService {
 
     List<Product> getAllProducts();
 
-    Product getProductById(Integer id);
+    Product getProductById(String id);
+
+    Product createProduct(Product product);
+
+    Product updateProduct(String productId, Product product);
+
+    Product deleteProduct(String productId);
 }
