@@ -81,7 +81,7 @@ public class InfrastructureStack extends Stack {
                 .build()))
             .handler("org.myorg.ProductApplication")
             .memorySize(512)
-            .timeout(Duration.seconds(10))
+            .timeout(Duration.seconds(30))
             .environment(env)
             .build());
 

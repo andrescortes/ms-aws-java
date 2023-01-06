@@ -5,25 +5,22 @@ import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapperConfig.SaveB
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBSaveExpression;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBScanExpression;
 import com.amazonaws.services.dynamodbv2.model.AmazonDynamoDBException;
+import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.ConditionalCheckFailedException;
 import com.amazonaws.services.dynamodbv2.model.ExpectedAttributeValue;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import org.myorg.db.FactoryAmazonDynamoDB;
 import org.myorg.model.Product;
 
 public class IProductRepositoryImpl implements IProductRepository {
 
-    private final FactoryAmazonDynamoDB amazonDynamoDB;
-    private final DynamoDBScanExpression dbScanExpression;
+    private final FactoryAmazonDynamoDB amazonDynamoDB = new FactoryAmazonDynamoDB();
+    private final DynamoDBScanExpression dbScanExpression = new DynamoDBScanExpression();
 
-    public IProductRepositoryImpl(FactoryAmazonDynamoDB amazonDynamoDB,
-        DynamoDBScanExpression dbScanExpression) {
-        this.amazonDynamoDB = amazonDynamoDB;
-        this.dbScanExpression = dbScanExpression;
-    }
 
     @Override
     public List<Product> getProducts() {
@@ -81,6 +78,21 @@ public class IProductRepositoryImpl implements IProductRepository {
             return load;
         }
         return null;
+    }
+
+    @Override
+    public Optional<List<Product>> getProductByCategory(String productId, String category) {
+        //values to filter as an attrs
+        Map<String, AttributeValue> valueMap = new HashMap<>();
+        valueMap.put(":id", new AttributeValue().withS(productId));
+        valueMap.put(":category", new AttributeValue().withS(category));
+        //Expression to scan and execute query
+        DynamoDBScanExpression scanExpression = new DynamoDBScanExpression()
+            .withFilterExpression("id = :id and category = :category")
+            .withExpressionAttributeValues(valueMap);
+
+        return Optional.ofNullable(amazonDynamoDB.mapper()
+            .scan(Product.class, scanExpression));
     }
 
 

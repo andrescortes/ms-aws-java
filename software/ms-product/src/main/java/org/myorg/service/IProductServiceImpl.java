@@ -4,16 +4,15 @@ import com.amazonaws.services.dynamodbv2.model.AmazonDynamoDBException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import org.myorg.model.Product;
-import org.myorg.repository.IProductRepository;
+import org.myorg.repository.IProductRepositoryImpl;
 
 public class IProductServiceImpl implements IProductService {
 
-    private final IProductRepository repository;
+    private final IProductRepositoryImpl repository = new IProductRepositoryImpl();
 
-    public IProductServiceImpl(IProductRepository repository) {
-        this.repository = repository;
-    }
+
 
     @Override
     public List<Product> getAllProducts() {
@@ -48,5 +47,10 @@ public class IProductServiceImpl implements IProductService {
     @Override
     public Product deleteProduct(String productId) {
         return repository.deleteProduct(productId);
+    }
+
+    @Override
+    public Optional<List<Product>> getProductByCategory(String productId, String category) {
+        return repository.getProductByCategory(productId, category);
     }
 }
