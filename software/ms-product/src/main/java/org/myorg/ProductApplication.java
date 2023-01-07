@@ -39,6 +39,9 @@ public class ProductApplication implements
             .withStatusCode(200)
             .withIsBase64Encoded(false)
             .withHeaders(headers);
+        logger.log("id: " + System.getProperty("PRIMARY_KEY"));
+        logger.log("table name: " + System.getProperty("TABLE_NAME"));
+
 
         try {
             switch (event.getHttpMethod()) {

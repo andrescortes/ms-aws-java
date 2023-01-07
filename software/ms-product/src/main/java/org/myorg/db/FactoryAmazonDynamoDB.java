@@ -1,28 +1,35 @@
 package org.myorg.db;
 
+import com.amazonaws.auth.AWSCredentialsProvider;
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
+import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
-import com.amazonaws.services.dynamodbv2.model.AmazonDynamoDBException;
 
 public class FactoryAmazonDynamoDB {
 
-    private Regions REGION = Regions.US_EAST_1;
+    static String accessKey = "";
+    static String secretKey = "";
 
-    private AmazonDynamoDB amazonDynamoDB() {
-        return AmazonDynamoDBClientBuilder.standard()
-            .withRegion(REGION)
+    private AWSCredentialsProvider awsCredentialsProvider() {
+        return new AWSStaticCredentialsProvider(
+            new BasicAWSCredentials(accessKey, secretKey)
+        );
+    }
+
+    public AmazonDynamoDB client() {
+        return AmazonDynamoDBClientBuilder
+            .standard()
+            .withRegion(Regions.US_EAST_1)
+            .withCredentials(
+                this.awsCredentialsProvider()
+            )
             .build();
     }
 
     public DynamoDBMapper mapper() {
-        try {
-            return new DynamoDBMapper(this.amazonDynamoDB());
-        } catch (Exception e) {
-            throw new AmazonDynamoDBException(
-                "No was created a instance of " + DynamoDBMapper.class);
-        }
+        return new DynamoDBMapper(this.client());
     }
-
 }

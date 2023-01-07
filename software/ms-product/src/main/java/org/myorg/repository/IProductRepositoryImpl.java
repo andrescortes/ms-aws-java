@@ -8,6 +8,8 @@ import com.amazonaws.services.dynamodbv2.model.AmazonDynamoDBException;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.ConditionalCheckFailedException;
 import com.amazonaws.services.dynamodbv2.model.ExpectedAttributeValue;
+import com.amazonaws.services.dynamodbv2.model.ScanRequest;
+import com.amazonaws.services.dynamodbv2.model.ScanResult;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,18 +20,31 @@ import org.myorg.model.Product;
 
 public class IProductRepositoryImpl implements IProductRepository {
 
-    private final FactoryAmazonDynamoDB amazonDynamoDB = new FactoryAmazonDynamoDB();
+    private final FactoryAmazonDynamoDB dynamoDB = new FactoryAmazonDynamoDB();
+    private final String tableName = dynamoDB.client().listTables().getTableNames().get(0);
     private final DynamoDBScanExpression dbScanExpression = new DynamoDBScanExpression();
 
 
     @Override
-    public List<Product> getProducts() {
-        return amazonDynamoDB.mapper().scan(Product.class, dbScanExpression);
+    public String getProducts() {
+        System.out.println("table_name = " + tableName);
+        ScanRequest scanRequest = new ScanRequest().withTableName(
+            tableName.equals("") || tableName.isEmpty() || tableName.isBlank() ? "products" : tableName
+        );
+        ScanResult scanResult;
+        try {
+            scanResult = dynamoDB.client().scan(scanRequest);
+        } catch (Exception e) {
+            throw new AmazonDynamoDBException("Failed to perform action get data");
+        }
+        System.out.printf("scan results: " + scanResult.toString());
+//        return client.mapper().scan(Product.class, dbScanExpression);
+        return scanResult.toString();
     }
 
     @Override
     public Product getProduct(String id) {
-        return amazonDynamoDB.mapper().load(Product.class, id);
+        return dynamoDB.mapper().load(Product.class, id);
     }
 
     @Override
@@ -48,7 +63,7 @@ public class IProductRepositoryImpl implements IProductRepository {
 
         try {
             //Save to mapper using the saveExpression
-            amazonDynamoDB.mapper().save(product, saveExpression);
+            dynamoDB.mapper().save(product, saveExpression);
             return product;
         } catch (ConditionalCheckFailedException e) {
             throw new AmazonDynamoDBException(
@@ -62,7 +77,7 @@ public class IProductRepositoryImpl implements IProductRepository {
         if (Objects.nonNull(toSaved)) {
             toSaved.setName(product.getName());
             toSaved.setPrice(product.getPrice());
-            amazonDynamoDB.mapper().save(toSaved, DynamoDBMapperConfig.builder()
+            dynamoDB.mapper().save(toSaved, DynamoDBMapperConfig.builder()
                 .withSaveBehavior(SaveBehavior.UPDATE_SKIP_NULL_ATTRIBUTES)
                 .build());
             return toSaved;
@@ -72,9 +87,9 @@ public class IProductRepositoryImpl implements IProductRepository {
 
     @Override
     public Product deleteProduct(String id) {
-        Product load = amazonDynamoDB.mapper().load(Product.class, id);
+        Product load = dynamoDB.mapper().load(Product.class, id);
         if (Objects.nonNull(load)) {
-            amazonDynamoDB.mapper().delete(load);
+            dynamoDB.mapper().delete(load);
             return load;
         }
         return null;
@@ -91,7 +106,7 @@ public class IProductRepositoryImpl implements IProductRepository {
             .withFilterExpression("id = :id and category = :category")
             .withExpressionAttributeValues(valueMap);
 
-        return Optional.ofNullable(amazonDynamoDB.mapper()
+        return Optional.ofNullable(dynamoDB.mapper()
             .scan(Product.class, scanExpression));
     }
 

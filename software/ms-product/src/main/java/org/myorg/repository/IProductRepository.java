@@ -6,7 +6,7 @@ import org.myorg.model.Product;
 
 public interface IProductRepository {
 
-    List<Product> getProducts();
+    String getProducts();
 
     Product getProduct(String id);
 

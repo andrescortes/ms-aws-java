@@ -15,9 +15,10 @@ public class IProductServiceImpl implements IProductService {
 
 
     @Override
-    public List<Product> getAllProducts() {
-        List<Product> products = repository.getProducts();
-        return products.size() > 0 ? products : Collections.emptyList();
+    public String getAllProducts() {
+//        List<Product> products = repository.getProducts();
+//        return products.size() > 0 ? products : Collections.emptyList();
+        return repository.getProducts();
     }
 
     @Override
