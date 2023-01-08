@@ -8,7 +8,6 @@ import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import java.lang.reflect.GenericSignatureFormatError;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,9 +38,6 @@ public class ProductApplication implements
             .withStatusCode(200)
             .withIsBase64Encoded(false)
             .withHeaders(headers);
-        logger.log("id: " + System.getProperty("PRIMARY_KEY"));
-        logger.log("table name: " + System.getProperty("TABLE_NAME"));
-
 
         try {
             switch (event.getHttpMethod()) {
@@ -54,9 +50,6 @@ public class ProductApplication implements
                         String category = queryStringParameters.get("category");
                         Optional<List<Product>> products = service.getProductByCategory(productId,
                             category);
-                        logger.log("\nGET method Operation with queryParams productId: " + productId
-                            + ", category: " + category);
-                        logger.log("\nResult of query is: " + gson.toJson(products.get()));
                         if (products.isPresent()) {
                             response.withBody(gson.toJson(products));
                         } else {
@@ -78,55 +71,24 @@ public class ProductApplication implements
                     break;
                 }
                 case "POST": {
-                    Product product;
-                    logger.log(
-                        "POST method Operation: createProduct = " + gson.toJson(event.getBody()));
-                    try {
-                        product = gson.fromJson(event.getBody(), Product.class);
-                        product.setId(UUID.randomUUID().toString());
-                        logger.log("productRequest: " + gson.toJson(product));
-                    } catch (GenericSignatureFormatError error) {
-                        throw new AmazonClientException(
-                            "Failed when unmarshall with reason: " + error.getMessage());
-                    }
+                    Product product = gson.fromJson(event.getBody(), Product.class);
+                    product.setId(UUID.randomUUID().toString());
                     response.withStatusCode(201)
                         .withBody(gson.toJson(service.createProduct(product)));
                     break;
                 }
                 case "PUT": {
-                    logger.log(
-                        "PUT method Operation: createProduct = " + gson.toJson(event.getBody())
-                            + ", id: " + event.getPathParameters().get("id"));
-                    Product product;
-                    String productId;
-                    try {
-                        product = gson.fromJson(event.getBody(), Product.class);
-                        productId = event.getPathParameters().get("id");
-                        logger.log(
-                            "productRequest: " + gson.toJson(product) + ", id: " + productId);
-                    } catch (GenericSignatureFormatError error) {
-                        throw new AmazonClientException(
-                            "Failed when unmarshall with reason: " + error.getMessage());
-                    }
-                    response
-                        .withBody(gson.toJson(service.updateProduct(productId, product)));
+                    logger.log("PUT method ");
+                    Product product = gson.fromJson(event.getBody(), Product.class);
+                    String id = event.getPathParameters().get("id");
+                    response.withBody(gson.toJson(service.updateProduct(id, product)));
                     break;
                 }
 
                 case "DELETE": {
-                    logger.log(
-                        "DELETE method Operation: deleteProductById" + event.getPathParameters()
-                            .get("id"));
-                    Product product;
-                    try {
-                        product = gson.fromJson(event.getBody(), Product.class);
-                        logger.log("productRequest: " + gson.toJson(product));
-                    } catch (GenericSignatureFormatError error) {
-                        throw new AmazonClientException(
-                            "Failed when unmarshall with reason: " + error.getMessage());
-                    }
-                    response.withStatusCode(204)
-                        .withBody(gson.toJson(service.deleteProduct(product.getId())));
+                    logger.log("DELETE method Operation");
+                    String id = event.getPathParameters().get("id");
+                    response.withStatusCode(204).withBody(gson.toJson(service.deleteProduct(id)));
                     break;
                 }
                 default: {

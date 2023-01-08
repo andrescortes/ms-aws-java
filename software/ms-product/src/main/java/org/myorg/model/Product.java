@@ -18,6 +18,10 @@ public class Product {
     @DynamoDBAttribute
     private String name;
     @DynamoDBAttribute
+    private String description;
+    @DynamoDBAttribute
+    private String imageFile;
+    @DynamoDBAttribute
     private double price;
     @DynamoDBAttribute
     private String category;

@@ -4,9 +4,7 @@ import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapperConfig;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapperConfig.SaveBehavior;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBSaveExpression;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBScanExpression;
-import com.amazonaws.services.dynamodbv2.model.AmazonDynamoDBException;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
-import com.amazonaws.services.dynamodbv2.model.ConditionalCheckFailedException;
 import com.amazonaws.services.dynamodbv2.model.ExpectedAttributeValue;
 import com.amazonaws.services.dynamodbv2.model.ScanRequest;
 import com.amazonaws.services.dynamodbv2.model.ScanResult;
@@ -17,29 +15,22 @@ import java.util.Objects;
 import java.util.Optional;
 import org.myorg.db.FactoryAmazonDynamoDB;
 import org.myorg.model.Product;
+import org.myorg.model.transformer.Mapper;
 
 public class IProductRepositoryImpl implements IProductRepository {
 
     private final FactoryAmazonDynamoDB dynamoDB = new FactoryAmazonDynamoDB();
-    private final String tableName = dynamoDB.client().listTables().getTableNames().get(0);
-    private final DynamoDBScanExpression dbScanExpression = new DynamoDBScanExpression();
+    private final String PRIMARY_KEY = System.getenv("PRIMARY_KEY");
+    private final String TABLE_NAME = System.getenv("TABLE_NAME");
 
 
     @Override
-    public String getProducts() {
-        System.out.println("table_name = " + tableName);
-        ScanRequest scanRequest = new ScanRequest().withTableName(
-            tableName.equals("") || tableName.isEmpty() || tableName.isBlank() ? "products" : tableName
-        );
-        ScanResult scanResult;
-        try {
-            scanResult = dynamoDB.client().scan(scanRequest);
-        } catch (Exception e) {
-            throw new AmazonDynamoDBException("Failed to perform action get data");
-        }
-        System.out.printf("scan results: " + scanResult.toString());
-//        return client.mapper().scan(Product.class, dbScanExpression);
-        return scanResult.toString();
+    public List<Product> getProducts() {
+
+        ScanRequest scanRequest = new ScanRequest().withTableName(TABLE_NAME);
+        ScanResult scanResult = dynamoDB.client().scan(scanRequest);
+
+        return Mapper.mapToListEntity(scanResult);
     }
 
     @Override
@@ -61,14 +52,9 @@ public class IProductRepositoryImpl implements IProductRepository {
         DynamoDBSaveExpression saveExpression = new DynamoDBSaveExpression();
         saveExpression.setExpected(expectedAttributeValueMap);
 
-        try {
-            //Save to mapper using the saveExpression
-            dynamoDB.mapper().save(product, saveExpression);
-            return product;
-        } catch (ConditionalCheckFailedException e) {
-            throw new AmazonDynamoDBException(
-                "Failed to save Product with reason: " + e.getMessage());
-        }
+        dynamoDB.mapper().save(product, saveExpression);
+        return product;
+
     }
 
     @Override
@@ -77,9 +63,11 @@ public class IProductRepositoryImpl implements IProductRepository {
         if (Objects.nonNull(toSaved)) {
             toSaved.setName(product.getName());
             toSaved.setPrice(product.getPrice());
+            toSaved.setCategory(product.getCategory());
+            toSaved.setDescription(product.getDescription());
+            toSaved.setImageFile(product.getImageFile());
             dynamoDB.mapper().save(toSaved, DynamoDBMapperConfig.builder()
-                .withSaveBehavior(SaveBehavior.UPDATE_SKIP_NULL_ATTRIBUTES)
-                .build());
+                .withSaveBehavior(SaveBehavior.UPDATE_SKIP_NULL_ATTRIBUTES).build());
             return toSaved;
         }
         return null;
@@ -102,12 +90,10 @@ public class IProductRepositoryImpl implements IProductRepository {
         valueMap.put(":id", new AttributeValue().withS(productId));
         valueMap.put(":category", new AttributeValue().withS(category));
         //Expression to scan and execute query
-        DynamoDBScanExpression scanExpression = new DynamoDBScanExpression()
-            .withFilterExpression("id = :id and category = :category")
-            .withExpressionAttributeValues(valueMap);
+        DynamoDBScanExpression scanExpression = new DynamoDBScanExpression().withFilterExpression(
+            "id = :id and category = :category").withExpressionAttributeValues(valueMap);
 
-        return Optional.ofNullable(dynamoDB.mapper()
-            .scan(Product.class, scanExpression));
+        return Optional.ofNullable(dynamoDB.mapper().scan(Product.class, scanExpression));
     }
 
 
