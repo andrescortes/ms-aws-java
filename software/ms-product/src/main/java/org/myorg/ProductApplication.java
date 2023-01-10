@@ -1,6 +1,7 @@
 package org.myorg;
 
 import com.amazonaws.AmazonClientException;
+import com.amazonaws.services.dynamodbv2.datamodeling.PaginatedScanList;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.LambdaLogger;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
@@ -9,9 +10,7 @@ import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 import org.myorg.model.Product;
 import org.myorg.service.IProductServiceImpl;
@@ -44,20 +43,13 @@ public class ProductApplication implements
                 case "GET": {
                     if (event.getQueryStringParameters() != null) {
                         // Get Method product/1234?category=Phone queryParams
-                        Map<String, String> pathParameters = event.getPathParameters();
                         Map<String, String> queryStringParameters = event.getQueryStringParameters();
-                        String productId = pathParameters.get("id");
+
                         String category = queryStringParameters.get("category");
-                        Optional<List<Product>> products = service.getProductByCategory(productId,
+                        PaginatedScanList<Product> productByCategory = service.getProductByCategory(
                             category);
-                        if (products.isPresent()) {
-                            response.withBody(gson.toJson(products));
-                        } else {
-                            response
-                                .withStatusCode(404)
-                                .withBody("Not found with productId: " + productId + ", category: "
-                                    + category);
-                        }
+                        response.withBody(gson.toJson(productByCategory));
+
                     } else if (event.getPathParameters() != null) {
                         Map<String, String> pathParameters = event.getPathParameters();
                         logger.log(

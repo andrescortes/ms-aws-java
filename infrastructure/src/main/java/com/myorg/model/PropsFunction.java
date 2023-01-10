@@ -1,23 +1,38 @@
 package com.myorg.model;
 
-public class PropsFunction {
+import java.util.Map;
 
+public class PropsFunction {
     private String projectName;
+
+    private String functionName;
+
     private String tableName;
     private String handler;
-
-    public PropsFunction(String projectName, String tableName, String handler) {
+    private Map<String,String> environment;
+    public PropsFunction(String projectName, String functionName, String handler, String tableName,
+        Map<String, String> environment) {
         this.projectName = projectName;
+        this.functionName = functionName;
         this.tableName = tableName;
         this.handler = handler;
+        this.environment = environment;
+    }
+
+    public String getFunctionName() {
+        return functionName;
+    }
+
+    public void setFunctionName(String functionName) {
+        this.functionName = functionName;
     }
 
     public String getProjectName() {
-        return projectName;
+        return functionName;
     }
 
     public void setProjectName(String projectName) {
-        this.projectName = projectName;
+        this.functionName = projectName;
     }
 
     public String getTableName() {
@@ -34,5 +49,13 @@ public class PropsFunction {
 
     public void setHandler(String handler) {
         this.handler = handler;
+    }
+
+    public Map<String, String> getEnvironment() {
+        return environment;
+    }
+
+    public void setEnvironment(Map<String, String> environment) {
+        this.environment = environment;
     }
 }

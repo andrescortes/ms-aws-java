@@ -1,7 +1,7 @@
 package org.myorg.repository;
 
+import com.amazonaws.services.dynamodbv2.datamodeling.PaginatedScanList;
 import java.util.List;
-import java.util.Optional;
 import org.myorg.model.Product;
 
 public interface IProductRepository {
@@ -16,5 +16,5 @@ public interface IProductRepository {
 
     Product deleteProduct(String id);
 
-    Optional<List<Product>> getProductByCategory(String productId, String category);
+    PaginatedScanList<Product> getProductByCategory(String category);
 }

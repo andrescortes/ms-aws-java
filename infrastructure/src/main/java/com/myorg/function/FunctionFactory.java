@@ -6,7 +6,6 @@ import static software.amazon.awscdk.BundlingOutput.ARCHIVED;
 import com.myorg.model.PropsFunction;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import software.amazon.awscdk.BundlingOptions;
 import software.amazon.awscdk.DockerVolume;
@@ -21,15 +20,11 @@ import software.constructs.Construct;
 
 public class FunctionFactory extends Construct {
 
-    private final PropsFunction propsFunction;
-
-    public FunctionFactory(@NotNull Construct scope, @NotNull String id,
-        @NotNull PropsFunction propsFunction) {
+    public FunctionFactory(@NotNull Construct scope, @NotNull String id) {
         super(scope, id);
-        this.propsFunction = propsFunction;
     }
 
-    public Function function() {
+    public Function createFunction(@NotNull PropsFunction propsFunction) {
         AssetOptions assetOptions = AssetOptions.builder()
             .bundling(bundlingOptions(packagingInstructionsToFunctionProduct(
                 propsFunction.getProjectName()))
@@ -46,7 +41,7 @@ public class FunctionFactory extends Construct {
             .handler(propsFunction.getHandler())
             .memorySize(512)
             .timeout(Duration.seconds(30))
-            .environment(environment())
+            .environment(propsFunction.getEnvironment())
             .build();
 
         return new Function(this, "Function", functionProps);
@@ -77,13 +72,4 @@ public class FunctionFactory extends Construct {
                 + ".jar /asset-output/"
         );
     }
-
-    private Map<String, String> environment() {
-        return Map.of(
-            "TABLE_NAME", propsFunction.getTableName(),
-            "PRIMARY_KEY", "id"
-        );
-    }
-
-
 }

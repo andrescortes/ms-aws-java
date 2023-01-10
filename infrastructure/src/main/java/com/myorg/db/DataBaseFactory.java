@@ -12,18 +12,14 @@ import software.constructs.Construct;
 
 public class DataBaseFactory extends Construct {
 
-    private final PropsDataBase propsDataBase;
-
-    public DataBaseFactory(@NotNull Construct scope, @NotNull String id,
-        @NotNull PropsDataBase propsDataBase) {
+    public DataBaseFactory(@NotNull Construct scope, @NotNull String id) {
         super(scope, id);
-        this.propsDataBase = propsDataBase;
     }
 
-    public Table createTable() {
+    public Table createTable(@NotNull PropsDataBase propsDataBase) {
 
         Attribute attribute = Attribute.builder()
-            .name("id")
+            .name(propsDataBase.getId())
             .type(AttributeType.STRING)
             .build();
 

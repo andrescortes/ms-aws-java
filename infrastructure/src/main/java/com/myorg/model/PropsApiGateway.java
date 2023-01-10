@@ -5,12 +5,10 @@ import software.amazon.awscdk.services.lambda.Function;
 public class PropsApiGateway {
 
     private String name;
-    private String pathRoot;
     private Function handler;
 
-    public PropsApiGateway(String name, String pathRoot, Function handler) {
+    public PropsApiGateway(String name, Function handler) {
         this.name = name;
-        this.pathRoot = pathRoot;
         this.handler = handler;
     }
 
@@ -22,13 +20,6 @@ public class PropsApiGateway {
         this.name = name;
     }
 
-    public String getPathRoot() {
-        return pathRoot;
-    }
-
-    public void setPathRoot(String pathRoot) {
-        this.pathRoot = pathRoot;
-    }
 
     public Function getHandler() {
         return handler;

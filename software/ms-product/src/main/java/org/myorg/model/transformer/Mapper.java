@@ -10,8 +10,6 @@ import org.myorg.model.Product;
 
 public class Mapper {
 
-    private final Gson gson = new Gson();
-
     public static List<Product> mapToListEntity(ScanResult scanResult) {
         List<Product> products = new ArrayList<>();
         for (Map<String, AttributeValue> item : scanResult.getItems()) {

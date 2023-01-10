@@ -1,10 +1,9 @@
 package org.myorg.service;
 
+import com.amazonaws.services.dynamodbv2.datamodeling.PaginatedScanList;
 import com.amazonaws.services.dynamodbv2.model.AmazonDynamoDBException;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import org.myorg.model.Product;
 import org.myorg.repository.IProductRepositoryImpl;
 
@@ -49,7 +48,7 @@ public class IProductServiceImpl implements IProductService {
     }
 
     @Override
-    public Optional<List<Product>> getProductByCategory(String productId, String category) {
-        return repository.getProductByCategory(productId, category);
+    public PaginatedScanList<Product> getProductByCategory(String category) {
+        return repository.getProductByCategory(category);
     }
 }

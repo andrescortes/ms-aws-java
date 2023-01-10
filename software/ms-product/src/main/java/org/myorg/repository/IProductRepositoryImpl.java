@@ -4,6 +4,7 @@ import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapperConfig;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapperConfig.SaveBehavior;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBSaveExpression;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBScanExpression;
+import com.amazonaws.services.dynamodbv2.datamodeling.PaginatedScanList;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.ExpectedAttributeValue;
 import com.amazonaws.services.dynamodbv2.model.ScanRequest;
@@ -12,7 +13,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import org.myorg.db.FactoryAmazonDynamoDB;
 import org.myorg.model.Product;
 import org.myorg.model.transformer.Mapper;
@@ -84,16 +84,18 @@ public class IProductRepositoryImpl implements IProductRepository {
     }
 
     @Override
-    public Optional<List<Product>> getProductByCategory(String productId, String category) {
+    public PaginatedScanList<Product> getProductByCategory(String category) {
         //values to filter as an attrs
         Map<String, AttributeValue> valueMap = new HashMap<>();
-        valueMap.put(":id", new AttributeValue().withS(productId));
+//        valueMap.put(":id", new AttributeValue().withS(productId));
         valueMap.put(":category", new AttributeValue().withS(category));
         //Expression to scan and execute query
+        /*DynamoDBScanExpression scanExpression = new DynamoDBScanExpression().withFilterExpression(
+            "id = :id and category = :category").withExpressionAttributeValues(valueMap);*/
         DynamoDBScanExpression scanExpression = new DynamoDBScanExpression().withFilterExpression(
-            "id = :id and category = :category").withExpressionAttributeValues(valueMap);
+            "category = :category").withExpressionAttributeValues(valueMap);
 
-        return Optional.ofNullable(dynamoDB.mapper().scan(Product.class, scanExpression));
+        return dynamoDB.mapper().scan(Product.class, scanExpression);
     }
 
 
