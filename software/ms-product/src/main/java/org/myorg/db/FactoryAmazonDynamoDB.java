@@ -10,8 +10,8 @@ import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
 
 public class FactoryAmazonDynamoDB {
 
-    static String accessKey = "AKIAUTSUNK2LEB2BJQZK";
-    static String secretKey = "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";
+    static String accessKey = "";
+    static String secretKey = "";
 
     private AWSCredentialsProvider awsCredentialsProvider() {
         return new AWSStaticCredentialsProvider(
