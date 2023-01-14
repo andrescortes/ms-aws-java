@@ -70,12 +70,15 @@ public class InfrastructureStack extends Stack {
             new PropsApiGateway("APIGatewayMSBasket", basketFunction));
         // resources and methods to basket
         Resource basket = apiGatewayMSBasket.getRoot().addResource("basket");
-        basket.addMethod("GET");
-        basket.addMethod("POST");
+        basket.addMethod("GET");//GET /basket
+        basket.addMethod("POST");//POST /basket
 
-        Resource singleBasket = basket.addResource("{id}");
+        Resource singleBasket = basket.addResource("{userName}");
         singleBasket.addMethod("GET");
-        singleBasket.addMethod("PUT");
         singleBasket.addMethod("DELETE");
+
+        Resource basketCheckout = basket.addResource("checkout");
+        basketCheckout.addMethod("POST");// POST /basket/checkout
+        // expected request payload : { userName: swn }
     }
 }

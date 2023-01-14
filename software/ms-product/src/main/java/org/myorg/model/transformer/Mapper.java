@@ -2,7 +2,6 @@ package org.myorg.model.transformer;
 
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.ScanResult;
-import com.google.gson.Gson;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -31,4 +30,13 @@ public class Mapper {
         }
         return products;
     }
+    /*
+    *     private String userName;
+    private double totalPrice;
+    private String firstName;
+    private String lastName;
+    private String email;
+    private String address;
+    private String cardInfo;
+    private int paymentMethod;*/
 }

@@ -12,7 +12,7 @@ import software.constructs.Construct;
 
 public class DataBaseFactory extends Construct {
 
-    public DataBaseFactory(@NotNull Construct scope, @NotNull String id) {
+    public DataBaseFactory(@NotNull Construct scope, @NotNull String id  ) {
         super(scope, id);
     }
 
